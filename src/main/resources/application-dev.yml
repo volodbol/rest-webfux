@@ -1,3 +1,8 @@
 logging:
   level:
     com.example.reactive.rest: DEBUG
+    org.springframework.cache: TRACE
+
+spring:
+  cache:
+    type: CAFFEINE

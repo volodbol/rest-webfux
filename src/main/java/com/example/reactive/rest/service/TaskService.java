@@ -6,7 +6,9 @@ import com.example.reactive.rest.model.Task;
 import com.example.reactive.rest.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import reactor.core.publisher.Mono;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@CacheConfig(cacheNames = {"tasks"})
 public class TaskService {
 
     private final ProjectService projectService;
@@ -23,19 +26,23 @@ public class TaskService {
 
     private final TaskMapper taskMapper;
 
-    public Mono<Page<Task>> getTasks(Long projectId, Pageable pageable) {
+    @Cacheable
+    public Mono<PageImpl<Task>> getTasks(Long projectId, Pageable pageable) {
         log.debug("Getting all tasks, project id: {}", projectId);
         return taskRepository.findAllByProjectId(projectId, pageable)
                 .collectList()
                 .zipWith(taskRepository.countAllByProjectId(projectId))
-                .flatMap(tuple2 -> Mono.just(new PageImpl<>(tuple2.getT1(), pageable, tuple2.getT2())));
+                .flatMap(tuple2 -> Mono.just(new PageImpl<>(tuple2.getT1(), pageable, tuple2.getT2())))
+                .cache();
     }
 
+    @Cacheable
     public Mono<Task> getTask(Long projectId, Long taskId) {
         log.debug("Getting task, project id: {}, task id: {}", projectId, taskId);
-        return taskRepository.findByProjectIdAndId(projectId, taskId);
+        return taskRepository.findByProjectIdAndId(projectId, taskId).cache();
     }
 
+    @CacheEvict(allEntries = true)
     public Mono<Task> createTask(Long projectId, TaskCreationDto taskCreationDto) {
         log.debug("Creating task, project id: {}, task creation dto: {}", projectId, taskCreationDto);
         Task task = taskMapper.toEntity(taskCreationDto);
@@ -49,6 +56,7 @@ public class TaskService {
                 });
     }
 
+    @CacheEvict(allEntries = true)
     public Mono<Task> updateTask(Long projectId, Long taskId, TaskCreationDto taskCreationDto) {
         log.debug("Updating task, project id: {}, task updating dto: {}", projectId, taskCreationDto);
         return projectService.isProjectExist(projectId)
@@ -72,13 +80,10 @@ public class TaskService {
         );
     }
 
+    @CacheEvict(allEntries = true)
     public Mono<Void> deleteTask(Long projectId, Long taskId) {
         log.debug("Deleting task, project id: {}, task id: {}", projectId, taskId);
         return taskRepository.deleteTaskByProjectIdAndId(projectId, taskId);
     }
 
-    public Mono<Void> deleteProjectTasks(Long projectId) {
-        log.debug("Deleting all task for project id: {}", projectId);
-        return taskRepository.deleteTasksByProjectId(projectId);
-    }
 }
