@@ -13,5 +13,5 @@ CREATE TABLE IF NOT EXISTS task
     project_id  varchar(255),
     updated_at  timestamp,
     created_at  timestamp,
-    FOREIGN KEY (project_id) REFERENCES project (id)
+    FOREIGN KEY (project_id) REFERENCES project (id) ON DELETE CASCADE
 );
