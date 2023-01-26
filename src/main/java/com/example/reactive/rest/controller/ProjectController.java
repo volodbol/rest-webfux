@@ -80,8 +80,7 @@ public class ProjectController {
     @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteProject(@PathVariable(name = "id") Long id) {
-        return taskService.deleteProjectTasks(id)
-                .then(projectService.deleteProject(id));
+        return projectService.deleteProject(id);
     }
 
     @GetMapping("{projectId}/tasks")
