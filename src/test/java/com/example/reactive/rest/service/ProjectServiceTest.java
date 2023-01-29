@@ -1,5 +1,6 @@
 package com.example.reactive.rest.service;
 
+import com.example.reactive.rest.IntegrationTest;
 import com.example.reactive.rest.dto.ProjectCreationDto;
 import com.example.reactive.rest.mapper.ProjectMapper;
 import com.example.reactive.rest.model.Project;
@@ -10,12 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataR2dbcTest
-@ActiveProfiles("test")
+@IntegrationTest
 class ProjectServiceTest {
 
     @Autowired
